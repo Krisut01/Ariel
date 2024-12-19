@@ -10,5 +10,5 @@ Route::get('/user', function (Request $request) {
 use App\Http\Controllers\MoodEntryController;
 
 
-Route::middleware('auth:sanctum')->get('/mood-entries', [MoodEntryController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/mood-entry', [MoodEntryController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/api/mood-entries', [MoodEntryController::class, 'index']);

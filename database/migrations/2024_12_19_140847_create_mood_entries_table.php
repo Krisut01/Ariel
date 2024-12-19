@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('mood_entries', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable(); // Add the user_id column
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');  // Ensure this is present
             $table->string('mood_description');
             $table->integer('mood_intensity');
             $table->string('emotional_state');

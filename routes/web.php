@@ -20,13 +20,14 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Authenticated Routes
+// Authenticated Routes for Inertia Pages
 Route::middleware(['auth', 'verified'])->group(function () {
     // Mood Tracking Routes
-    Route::post('/mood-entry', [MoodEntryController::class, 'store'])->name('mood-entry.store');
     Route::get('/mood-entries', function () {
         return Inertia::render('MoodEntries');
     })->name('mood-entries');
+    
+    Route::post('/mood-entry', [MoodEntryController::class, 'store'])->name('mood-entry.store');
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -34,8 +35,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// API Routes (for mood entries data)
+// API Routes for mood entries data (JSON responses)
 Route::middleware('auth:sanctum')->group(function () {
+    // Fetch mood entries (JSON response for the frontend)
     Route::get('/api/mood-entries', [MoodEntryController::class, 'index']);
 });
 

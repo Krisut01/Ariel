@@ -13,20 +13,32 @@ const fetchMoodEntries = async () => {
     errorMessage.value = null;
 
     try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            errorMessage.value = 'Authentication token missing';
+            isLoading.value = false;
+            return;
+        }
+
         const response = await axios.get('/api/mood-entries', {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${token}`,
             },
         });
-        console.log('Mood Entries Response:', response.data); // Log the API response
-        moodEntries.value = response.data;
+        console.log('Mood Entries Response:', response);
+        if (response.status === 200) {
+            moodEntries.value = response.data;
+        } else {
+            errorMessage.value = 'Failed to fetch mood entries. Server responded with an error.';
+        }
     } catch (error) {
-        errorMessage.value = 'Failed to load mood entries. Please try again later.';
-        console.error('Fetch Error:', error); // Log the error details
+        errorMessage.value = 'An error occurred while fetching mood entries.';
+        console.error('Error details:', error.response || error);
     } finally {
         isLoading.value = false;
     }
 };
+
 
 // Fetch mood entries when the component is mounted
 onMounted(fetchMoodEntries);
