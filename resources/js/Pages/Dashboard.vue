@@ -136,5 +136,14 @@ const clearForm = () => {
                 </div>
             </form>
         </div>
+        <div class="text-center mt-6">
+    <a
+        href="/mood-entries"
+        class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition-all duration-300"
+    >
+        View Mood Entries
+    </a>
+</div>
+
     </AuthenticatedLayout>
 </template>
