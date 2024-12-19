@@ -18,16 +18,17 @@ const fetchMoodEntries = async () => {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
             },
         });
+        console.log('Mood Entries Response:', response.data); // Log the API response
         moodEntries.value = response.data;
     } catch (error) {
         errorMessage.value = 'Failed to load mood entries. Please try again later.';
-        console.error(error);
+        console.error('Fetch Error:', error); // Log the error details
     } finally {
         isLoading.value = false;
     }
 };
 
-
+// Fetch mood entries when the component is mounted
 onMounted(fetchMoodEntries);
 </script>
 
