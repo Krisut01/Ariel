@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\MoodEntryController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -18,6 +19,12 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Ensure the mood-entry route is authenticated
+Route::middleware(['auth'])->group(function () {
+    Route::post('/mood-entry', [MoodEntryController::class, 'store'])->name('mood-entry.store');
+});
+
+// Profile-related routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
