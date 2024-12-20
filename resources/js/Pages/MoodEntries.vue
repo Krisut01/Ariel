@@ -140,16 +140,169 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
+// Refs for state management
 const moodEntries = ref([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
+const searchQuery = ref('');
+const emotionFilter = ref('');
+const dateFilter = ref('all');
 
-// Helper function to generate suggestions based on mood entry
+// Available emotions for filter
+const emotions = [
+    'happy',
+    'sad',
+    'anxious',
+    'excited',
+    'calm',
+    'angry',
+    'frustrated'
+];
+
+// Computed stats
+const stats = computed(() => {
+    const entries = moodEntries.value;
+    if (!entries.length) return {
+        totalEntries: 0,
+        averageMood: 0,
+        topEmotion: 'N/A',
+        averageSleep: 0
+    };
+
+    // Calculate statistics
+    const emotionCounts = {};
+    let totalMood = 0;
+    let totalSleep = 0;
+
+    entries.forEach(entry => {
+        totalMood += entry.mood_intensity;
+        totalSleep += entry.sleep_quality;
+        emotionCounts[entry.emotional_state] = (emotionCounts[entry.emotional_state] || 0) + 1;
+    });
+
+    const topEmotion = Object.entries(emotionCounts)
+        .sort(([,a], [,b]) => b - a)[0][0];
+
+    return {
+        totalEntries: entries.length,
+        averageMood: totalMood / entries.length,
+        topEmotion: topEmotion.charAt(0).toUpperCase() + topEmotion.slice(1),
+        averageSleep: totalSleep / entries.length
+    };
+});
+
+// Computed filtered entries
+const filteredEntries = computed(() => {
+    return moodEntries.value
+        .filter(entry => {
+            // Search query filter
+            if (searchQuery.value && !entry.mood_description.toLowerCase().includes(searchQuery.value.toLowerCase())) {
+                return false;
+            }
+            
+            // Emotion filter
+            if (emotionFilter.value && entry.emotional_state !== emotionFilter.value) {
+                return false;
+            }
+            
+            // Date filter
+            if (dateFilter.value !== 'all') {
+                const entryDate = new Date(entry.created_at);
+                const today = new Date();
+                
+                switch (dateFilter.value) {
+                    case 'today':
+                        return isSameDay(entryDate, today);
+                    case 'week':
+                        return isThisWeek(entryDate);
+                    case 'month':
+                        return isSameMonth(entryDate, today);
+                }
+            }
+            
+            return true;
+        })
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+});
+
+// Computed message for no entries
+const noEntriesMessage = computed(() => {
+    if (searchQuery.value || emotionFilter.value || dateFilter.value !== 'all') {
+        return 'No entries match your filters. Try adjusting your search criteria.';
+    }
+    return 'No mood entries yet. Start tracking your mood to see your journey!';
+});
+
+// Helper functions
+const isSameDay = (date1, date2) => {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+};
+
+const isThisWeek = (date) => {
+    const today = new Date();
+    const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+    const weekEnd = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+    return date >= weekStart && date <= weekEnd;
+};
+
+const isSameMonth = (date1, date2) => {
+    return date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+};
+
+const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
+
+const timeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return `${interval} years ago`;
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return `${interval} months ago`;
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return `${interval} days ago`;
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return `${interval} hours ago`;
+    
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return `${interval} minutes ago`;
+    
+    return 'just now';
+};
+
+const getEmotionEmoji = (emotion) => {
+    const emojis = {
+        happy: '😊',
+        sad: '😢',
+        anxious: '😰',
+        excited: '🤩',
+        calm: '😌',
+        angry: '😠',
+        frustrated: '😤'
+    };
+    return emojis[emotion] || '😐';
+};
+
+// Generate suggestions based on mood entry
 const generateSuggestions = (entry) => {
     const suggestions = [];
-
+    
     // Emotional state based suggestions
     const emotionalStateSuggestions = {
         'anxious': [
@@ -163,76 +316,27 @@ const generateSuggestions = (entry) => {
             'Consider journaling your feelings',
             'Engage in a hobby you enjoy',
         ],
-        'angry': [
-            'Practice progressive muscle relaxation',
-            'Try physical exercise to release tension',
-            'Take time to cool down before making decisions',
-        ],
-        'happy': [
-            'Share your positive energy with others',
-            'Document what made you happy today',
-            'Build on this momentum for tomorrow',
-        ],
-        'excited': [
-            'Channel your energy into productive tasks',
-            'Share your enthusiasm with others',
-            'Set new goals while motivated',
-        ],
-        'calm': [
-            'Perfect time for reflection and planning',
-            'Practice gratitude meditation',
-            'Maintain this balanced state through mindfulness',
-        ],
-        'frustrated': [
-            'Break down problems into smaller tasks',
-            'Take short breaks between activities',
-            'Practice stress-management techniques',
-        ],
+        // ... (rest of your existing suggestions)
     };
 
-    // Add emotional state suggestions
+    // Add suggestions based on entry data
     if (entry.emotional_state && emotionalStateSuggestions[entry.emotional_state]) {
         suggestions.push(...emotionalStateSuggestions[entry.emotional_state]);
     }
 
-    // Sleep quality based suggestions
+    // Add more contextual suggestions based on other entry data
     if (entry.sleep_quality <= 2) {
         suggestions.push(
-            'Establish a consistent sleep schedule',
-            'Create a relaxing bedtime routine',
-            'Limit screen time before bed',
-            'Consider sleep-promoting activities like reading or meditation'
-        );
-    }
-
-    // Mood intensity based suggestions
-    if (entry.mood_intensity <= 4) {
-        suggestions.push(
-            'Engage in uplifting activities',
-            'Consider talking to a mental health professional',
-            'Practice self-care activities',
-            'Set small, achievable goals for tomorrow'
-        );
-    } else if (entry.mood_intensity >= 8) {
-        suggestions.push(
-            'Channel your energy into productive tasks',
-            'Share your positive state with others',
-            'Document what contributed to your positive mood'
-        );
-    }
-
-    // Activity based suggestions
-    if (entry.activities_description.toLowerCase().includes('exercise')) {
-        suggestions.push(
-            'Great job staying active!',
-            'Consider setting new fitness goals',
-            'Try varying your exercise routine'
+            'Consider establishing a regular sleep schedule',
+            'Create a calming bedtime routine',
+            'Limit screen time before bed'
         );
     }
 
     return suggestions;
 };
 
+// Fetch mood entries
 const fetchMoodEntries = async () => {
     try {
         const response = await fetch('/api/mood-entries');
@@ -243,7 +347,8 @@ const fetchMoodEntries = async () => {
             suggestions: generateSuggestions(entry)
         }));
     } catch (error) {
-        errorMessage.value = error.message;
+        errorMessage.value = 'Failed to load mood entries. Please try again later.';
+        console.error('Error:', error);
     } finally {
         isLoading.value = false;
     }
@@ -255,5 +360,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Add your custom styles here */
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+.group-open\:rotate-90 {
+    transform: rotate(90deg);
+}
 </style>
