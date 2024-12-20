@@ -15,10 +15,21 @@ Route::get('/', function () {
     ]);
 });
 
-// Dashboard
+// // Dashboard
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+
+
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Dashboard', [
+        'user' => auth()->user(), // Pass the authenticated user's data
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+
 
 // Authenticated Routes for Inertia Pages
 Route::middleware(['auth', 'verified'])->group(function () {

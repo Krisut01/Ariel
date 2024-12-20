@@ -12,3 +12,9 @@ use App\Http\Controllers\MoodEntryController;
 
 Route::middleware('auth:sanctum')->post('/mood-entry', [MoodEntryController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/api/mood-entries', [MoodEntryController::class, 'index']);
+Route::get('/user-analytics', [AnalyticsController::class, 'getUserAnalytics'])->middleware('auth:sanctum');
+
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});

@@ -1,180 +1,182 @@
-<script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-
-const moodEntries = ref([]);
-const isLoading = ref(true);
-const errorMessage = ref(null);
-const triggers = ref([]);
-const userBaseline = ref({
-  emotionalState: 'Neutral', // Default baseline
-  sleepQuality: 5, // Default baseline (1-5)
-});
-const user = ref({
-  name: 'User', // Default, replace with actual user name from backend
-  email: 'user@example.com', // Default, replace with actual email from backend
-});
-
-const fetchMoodEntries = async () => {
-    isLoading.value = true;
-    errorMessage.value = null;
-
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            errorMessage.value = 'Authentication token missing';
-            isLoading.value = false;
-            return;
-        }
-
-        // Fetch mood entries for the logged-in user
-        const response = await axios.get('/api/mood-entries', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        if (response.status === 200) {
-            moodEntries.value = response.data;
-            moodEntries.value.forEach(entry => triggerBasedOnState(entry));
-        } else {
-            errorMessage.value = 'Failed to fetch mood entries.';
-        }
-    } catch (error) {
-        errorMessage.value = 'An error occurred while fetching mood entries.';
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-// Function to define triggers based on emotional state, sleep quality, and baseline data
-const triggerBasedOnState = (entry) => {
-    const { emotional_state, sleep_quality } = entry;
-    let suggestion = '';
-
-    // Compare with user baseline
-    const emotionalStateDeviation = getEmotionalStateDeviation(emotional_state);
-    const sleepQualityDeviation = getSleepQualityDeviation(sleep_quality);
-
-    // Trigger suggestions based on emotional state and sleep quality
-    if (emotional_state === 'Stressed' || emotional_state === 'Anxious') {
-        if (sleep_quality <= 3) {
-            suggestion = 'You are stressed and have poor sleep. Consider deep breathing, meditation, or seeking professional help.';
-        } else {
-            suggestion = 'You are stressed but have good sleep. Try stress management techniques like journaling or taking breaks.';
-        }
-    }
-
-    if (emotional_state === 'Happy' || emotional_state === 'Content') {
-        if (sleep_quality >= 4) {
-            suggestion = 'You are happy and have had good sleep! Keep up the great work and continue your positive habits!';
-        } else {
-            suggestion = 'You are feeling happy, but sleep quality could improve. Consider reducing screen time before bed.';
-        }
-    }
-
-    if (sleep_quality <= 2) {
-        suggestion = suggestion || 'Your sleep quality is poor. Try improving your sleep hygiene by limiting screen time or reducing caffeine.';
-    } else if (sleep_quality >= 4) {
-        suggestion = suggestion || 'Your sleep quality is great. Keep up the good work and maintain your sleep habits!';
-    }
-
-    // Add baseline deviation alerts
-    if (emotionalStateDeviation > 2) {
-        suggestion = suggestion || `Your emotional state has significantly deviated from your baseline. It might be helpful to talk to someone or consider relaxation techniques.`;
-    }
-
-    if (sleepQualityDeviation > 2) {
-        suggestion = suggestion || `Your sleep quality has significantly dropped compared to your baseline. Consider improving your sleep hygiene or speaking to a professional.`;
-    }
-
-    // Final suggestion
-    if (suggestion) {
-        triggers.value.push(suggestion);
-    }
-};
-
-// Helper function to calculate emotional state deviation from baseline
-const getEmotionalStateDeviation = (currentState) => {
-    const emotionalStates = ['Neutral', 'Happy', 'Content', 'Stressed', 'Anxious'];
-    const baselineIndex = emotionalStates.indexOf(userBaseline.value.emotionalState);
-    const currentStateIndex = emotionalStates.indexOf(currentState);
-
-    return Math.abs(baselineIndex - currentStateIndex);
-};
-
-// Helper function to calculate sleep quality deviation from baseline
-const getSleepQualityDeviation = (currentQuality) => {
-    return Math.abs(userBaseline.value.sleepQuality - currentQuality);
-};
-
-// Fetch mood entries when the component is mounted
-onMounted(fetchMoodEntries);
-</script>
-
 <template>
     <Head title="Mood Entries" />
 
     <AuthenticatedLayout>
-        <div class="max-w-6xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-            <!-- User Greeting Section -->
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-700">Hello, @{{ user.name }}</h2>
-                <p class="text-lg text-gray-500">Here is your mood analytics and suggestions:</p>
+        <div class="min-h-screen bg-gradient-to-br from-violet-50 to-blue-50 py-8">
+            <!-- Header Card -->
+            <div class="bg-white shadow-xl rounded-xl overflow-hidden border-t-4 border-indigo-500 mb-8">
+                <div class="p-8">
+                    <div class="flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <h2 class="text-3xl font-bold text-gray-800">Your Mood Journey</h2>
+                    </div>
+                    <p class="text-center text-lg text-gray-600">Track your emotional well-being and discover insights about yourself</p>
+                </div>
             </div>
 
             <!-- Loading State -->
-            <div v-if="isLoading" class="text-center text-gray-500">
-                Loading your mood entries...
+            <div v-if="isLoading" class="bg-white shadow-xl rounded-xl p-8 text-center">
+                <svg class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-gray-600">Loading your mood journey...</p>
             </div>
 
             <!-- Error Message -->
-            <div v-if="errorMessage" class="p-4 mb-4 text-red-800 bg-red-100 rounded-lg">
-                {{ errorMessage }}
+            <div v-if="errorMessage" class="bg-white shadow-xl rounded-xl p-6 mb-8">
+                <div class="flex items-center p-4 text-red-800 bg-red-50 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ errorMessage }}
+                </div>
             </div>
 
-            <!-- Analytics Section -->
-            <div v-else>
-                <h3 class="text-xl font-semibold mb-4">Your Analytics</h3>
+            <!-- Main Content -->
+            <div v-else class="grid gap-8">
+                <!-- Mood Entries -->
+                <div class="bg-white shadow-xl rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <h3 class="text-xl font-semibold text-gray-800">Your Mood Entries</h3>
+                            </div>
+                        </div>
+
+                        <div v-if="moodEntries.length === 0" class="text-center py-8">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <p class="text-gray-500">No mood entries yet. Start tracking your mood to see your journey!</p>
+                        </div>
+
+                        <transition-group name="fade" tag="div" class="grid gap-6">
+                            <div v-for="entry in moodEntries" :key="entry.id" 
+                                 class="p-6 rounded-lg border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all duration-200">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-xl font-semibold text-indigo-600">{{ entry.mood_description }}</h4>
+                                    <span class="text-sm text-gray-500">{{ new Date(entry.created_at).toLocaleString() }}</span>
+                                </div>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <div class="w-32 text-gray-600 font-medium">Intensity:</div>
+                                            <div class="flex-1">
+                                                <div class="h-2 bg-gray-200 rounded">
+                                                    <div class="h-full bg-indigo-500 rounded" 
+                                                         :style="{ width: `${entry.mood_intensity * 10}%` }"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center">
+                                            <div class="w-32 text-gray-600 font-medium">Sleep Quality:</div>
+                                            <div class="flex">
+                                                <template v-for="n in 4" :key="n">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" 
+                                                         :class="['w-5 h-5', n <= entry.sleep_quality ? 'text-yellow-400' : 'text-gray-300']"
+                                                         fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                    </svg>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <p><span class="font-medium text-gray-600">Emotional State:</span> {{ entry.emotional_state }}</p>
+                                        <p><span class="font-medium text-gray-600">Goal:</span> {{ entry.goal_description }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <details class="group">
+                                        <summary class="flex items-center cursor-pointer text-gray-600 hover:text-indigo-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                                 class="h-5 w-5 mr-2 transition-transform group-open:rotate-90" 
+                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                            View Suggestions
+                                        </summary>
+                                        <div class="mt-4 pl-7 space-y-3">
+                                         
+                                            
+                                            <!-- Advice or Suggestions based on conditions -->
+                                            <div v-if="entry.emotional_state === 'Stressed' || entry.emotional_state === 'Angry'">
+                                                <p class="text-red-600">Advice: Try some deep breathing exercises or take a break to manage your stress.</p>
+                                            </div>
+                                            <div v-if="entry.emotional_state === 'Sad'">
+                                                <p class="text-blue-600">Advice: Consider talking to a friend or journaling your thoughts to release negative emotions.</p>
+                                            </div>
+                                            <div v-if="entry.mood_intensity < 5">
+                                                <p class="text-green-600">Suggestion: Engaging in light physical activity or meditation can help increase your mood intensity.</p>
+                                            </div>
+                                            <div v-if="entry.sleep_quality < 3">
+                                                <p class="text-orange-600">Suggestion: Focus on improving your sleep hygiene, such as having a consistent sleep schedule and reducing screen time before bed.</p>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+                        </transition-group>
+                    </div>
+                </div>
+
+                <!-- Mood Entry Form -->
                 
-                <div v-if="moodEntries.length === 0" class="text-center text-gray-500">
-                    No mood entries available.
-                </div>
-
-                <div v-else class="space-y-4">
-                    <!-- Display Mood Entries -->
-                    <ul>
-                        <li v-for="entry in moodEntries" :key="entry.id" class="p-4 border rounded-lg shadow-sm">
-                            <h4 class="text-lg font-bold">{{ entry.mood_description }}</h4>
-                            <p><strong>Intensity:</strong> {{ entry.mood_intensity }}</p>
-                            <p><strong>Emotional State:</strong> {{ entry.emotional_state }}</p>
-                            <p><strong>Trigger:</strong> {{ entry.trigger_description }}</p>
-                            <p><strong>Sleep Quality:</strong> {{ entry.sleep_quality }}</p>
-                            <p><strong>Activities:</strong> {{ entry.activities_description }}</p>
-                            <p><strong>Gratitude:</strong> {{ entry.gratitude_entry }}</p>
-                            <p><strong>Goal:</strong> {{ entry.goal_description }}</p>
-                            <p class="text-sm text-gray-500"><em>Submitted on {{ new Date(entry.created_at).toLocaleString() }}</em></p>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Display Trigger Suggestions -->
-                <div v-if="triggers.length > 0" class="mt-6 p-4 mb-4 text-blue-800 bg-blue-100 rounded-lg">
-                    <h4 class="font-semibold">Suggestions & Alerts</h4>
-                    <ul>
-                        <li v-for="(trigger, index) in triggers" :key="index">{{ trigger }}</li>
-                    </ul>
-                </div>
-
-                <!-- Personalized Advice Section -->
-                <div class="mt-6 p-4 mb-4 text-green-800 bg-green-100 rounded-lg">
-                    <h4 class="font-semibold">What to Do and What to Avoid</h4>
-                    <p><strong>What to Do:</strong> Try practicing deep breathing exercises, journaling, and taking regular breaks to manage stress. Continue with positive habits like gratitude journaling.</p>
-                    <p><strong>What to Avoid:</strong> Avoid excessive screen time before bed, caffeine late in the day, and overexerting yourself without taking rest breaks.</p>
-                </div>
             </div>
         </div>
     </AuthenticatedLayout>
 </template>
+
+<script>
+export default {
+    data() {
+        return {
+            moodEntries: [],
+            moodEntry: {
+                mood_description: "",
+                emotional_state: "",
+                mood_intensity: 5,
+                sleep_quality: 5,
+                goal_description: "",
+                triggers: "",
+                self_care_activities: "",
+                gratitude_log: ""
+            },
+            isLoading: false,
+            errorMessage: ""
+        };
+    },
+    mounted() {
+        this.fetchMoodEntries();
+    },
+    methods: {
+        async fetchMoodEntries() {
+            try {
+                const response = await fetch('/api/mood-entries');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch mood entries');
+                }
+                this.moodEntries = await response.json();
+            } catch (error) {
+                this.errorMessage = error.message;
+            } finally {
+                this.isLoading = false;
+            }
+        }
+        
+    }
+};
+</script>
+
+<style scoped>
+/* Add your custom styles here */
+</style>
