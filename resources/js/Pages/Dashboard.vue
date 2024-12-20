@@ -4,6 +4,41 @@
     <AuthenticatedLayout>
         <div class="min-h-screen bg-gradient-to-br from-violet-50 to-blue-50 py-8">
             <div class="max-w-4xl mx-auto">
+                <!-- Analytics Card -->
+                <div class="bg-white shadow-xl rounded-xl overflow-hidden border-t-4 border-indigo-500 mb-8">
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Weekly Average -->
+                            <div class="bg-indigo-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-indigo-600 mb-2">Weekly Average</h4>
+                                <div class="text-2xl font-bold text-indigo-700">{{ weeklyAverage }}</div>
+                                <div class="text-sm text-indigo-600">{{ weeklyTrend }}</div>
+                            </div>
+                            
+                            <!-- Sleep Impact -->
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-blue-600 mb-2">Sleep Quality</h4>
+                                <div class="text-2xl font-bold text-blue-700">{{ sleepQualityScore }}</div>
+                                <div class="text-sm text-blue-600">Impact on mood</div>
+                            </div>
+
+                            <!-- Time Pattern -->
+                            <div class="bg-violet-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-violet-600 mb-2">Best Time</h4>
+                                <div class="text-2xl font-bold text-violet-700">{{ bestTimeOfDay }}</div>
+                                <div class="text-sm text-violet-600">Peak mood hours</div>
+                            </div>
+
+                            <!-- Weather Impact -->
+                            <div class="bg-cyan-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-cyan-600 mb-2">Weather Impact</h4>
+                                <div class="text-2xl font-bold text-cyan-700">{{ weatherImpact }}</div>
+                                <div class="text-sm text-cyan-600">{{ currentWeather }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Card -->
                 <div class="bg-white shadow-xl rounded-xl overflow-hidden border-t-4 border-indigo-500">
                     <!-- Header -->
@@ -20,9 +55,18 @@
                     </div>
 
                     <!-- Success Message -->
-                    <div v-if="successMessage" class="mx-8 mb-6 p-4 bg-green-50 text-green-700 rounded-lg flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <div v-if="successMessage" 
+                         class="mx-8 mb-6 p-4 bg-green-50 text-green-700 rounded-lg flex items-center"
+                         role="alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                             class="h-5 w-5 mr-2" 
+                             fill="none" 
+                             viewBox="0 0 24 24" 
+                             stroke="currentColor">
+                            <path stroke-linecap="round" 
+                                  stroke-linejoin="round" 
+                                  stroke-width="2" 
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         {{ successMessage }}
                     </div>
@@ -119,7 +163,7 @@
                                             <option value="happy">😊 Happy</option>
                                             <option value="sad">😢 Sad</option>
                                             <option value="anxious">😰 Anxious</option>
-                                            <option value="excited">🤩 Excited</option>
+                                            <option value="excited">😃 Excited</option>
                                             <option value="calm">😌 Calm</option>
                                             <option value="angry">😠 Angry</option>
                                             <option value="frustrated">😤 Frustrated</option>
@@ -231,7 +275,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 
@@ -273,17 +317,153 @@ const moodTrendColor = computed(() => {
 const showIntensity = ref(false);
 const isDragging = ref(false);
 
-// Add event listeners for the range input
-onMounted(() => {
-    const rangeInput = document.querySelector('input[type="range"]');
-    
-    rangeInput.addEventListener('mousedown', () => {
-        isDragging.value = true;
-    });
-    
-    window.addEventListener('mouseup', () => {
-        isDragging.value = false;
-    });
+// New refs for analytics
+const weeklyMoods = ref({
+    moods: [],
+    analytics: {
+        average: 0,
+        trend: null,
+        patterns: {
+            best_time: null,
+            hourly_averages: {}
+        },
+        sleep_correlation: {
+            coefficient: 0,
+            impact_level: 'Unknown'
+        }
+    }
+});
+const weatherData = ref({
+    condition: 'Loading...',
+    temperature: null,
+    description: 'Fetching weather data'
+});
+const timePatterns = ref([]);
+const isLoading = ref(true);
+
+// Computed properties for analytics
+const weeklyAverage = computed(() => {
+    try {
+        const moods = weeklyMoods.value?.moods || [];
+        if (moods.length === 0) return 'N/A';
+        
+        const avg = moods.reduce((acc, mood) => acc + (mood?.intensity || 0), 0) / moods.length;
+        return avg.toFixed(1);
+    } catch (error) {
+        console.error('Error calculating weekly average:', error);
+        return 'N/A';
+    }
+});
+
+const weeklyTrend = computed(() => {
+    try {
+        const moods = weeklyMoods.value?.moods || [];
+        if (moods.length < 2) return 'Not enough data';
+        
+        const firstMood = moods[0]?.intensity || 0;
+        const lastMood = moods[moods.length - 1]?.intensity || 0;
+        const trend = lastMood - firstMood;
+        
+        return trend > 0 ? '↑ Improving' : trend < 0 ? '↓ Declining' : '→ Stable';
+    } catch (error) {
+        console.error('Error calculating trend:', error);
+        return 'Unable to calculate';
+    }
+});
+
+const sleepQualityScore = computed(() => {
+    try {
+        return weeklyMoods.value?.analytics?.sleep_correlation?.impact_level || 'Analyzing...';
+    } catch (error) {
+        console.error('Error calculating sleep quality:', error);
+        return 'N/A';
+    }
+});
+
+const bestTimeOfDay = computed(() => {
+    try {
+        const bestTime = weeklyMoods.value?.analytics?.patterns?.best_time;
+        return bestTime ? formatHour(bestTime) : 'Analyzing...';
+    } catch (error) {
+        console.error('Error calculating best time:', error);
+        return 'N/A';
+    }
+});
+
+const weatherImpact = computed(() => {
+    return weatherData.value?.condition || 'Loading...';
+});
+
+const currentWeather = computed(() => {
+    const data = weatherData.value;
+    if (!data || !data.temperature) return 'Fetching...';
+    return `${data.temperature}°C ${data.description || ''}`;
+});
+
+// Helper functions
+const formatHour = (hour) => {
+    try {
+        const h = parseInt(hour);
+        if (isNaN(h)) return 'Invalid time';
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const hour12 = h % 12 || 12;
+        return `${hour12}${ampm}`;
+    } catch (error) {
+        console.error('Error formatting hour:', error);
+        return 'Invalid time';
+    }
+};
+
+// Data fetching with proper error handling
+const fetchWeeklyMoods = async () => {
+    try {
+        isLoading.value = true;
+        const response = await fetch('/api/weekly-moods');
+        if (!response.ok) throw new Error('Failed to fetch mood data');
+        
+        const data = await response.json();
+        weeklyMoods.value = {
+            moods: data.moods || [],
+            analytics: data.analytics || {
+                average: 0,
+                trend: null,
+                patterns: { best_time: null, hourly_averages: {} },
+                sleep_correlation: { coefficient: 0, impact_level: 'Unknown' }
+            }
+        };
+    } catch (error) {
+        console.error('Error fetching weekly moods:', error);
+        errorMessage.value = 'Failed to load mood data';
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const fetchWeatherData = async () => {
+    try {
+        const response = await fetch('/api/weather');
+        if (!response.ok) throw new Error('Failed to fetch weather data');
+        weatherData.value = await response.json();
+    } catch (error) {
+        console.error('Error fetching weather:', error);
+        weatherData.value = {
+            condition: 'Unavailable',
+            temperature: null,
+            description: 'Weather data unavailable'
+        };
+    }
+};
+
+// Component lifecycle
+onMounted(async () => {
+    try {
+        await Promise.all([
+            fetchWeeklyMoods(),
+            fetchWeatherData()
+        ]);
+    } catch (error) {
+        console.error('Error during initial data fetch:', error);
+    }
 });
 
 // Submit the form
@@ -305,21 +485,25 @@ const submitForm = async () => {
         previousMoodIntensity.value = moodIntensity.value;
 
         // Send the data using Inertia
-        await router.post('/mood-entry', data);
-
-        // Show success message
-        successMessage.value = 'Your mood entry has been saved successfully!';
-        
-        // Clear the form
-        resetForm();
-
-        // Redirect to mood entries page after short delay
-        setTimeout(() => {
-            router.visit('/mood-entries');
-        }, 1500);
+        await router.post('/mood-entry', data, {
+            onSuccess: () => {
+                successMessage.value = 'Your mood entry has been saved successfully!';
+                // Clear the form
+                resetForm();
+                // Redirect after short delay
+                setTimeout(() => {
+                    router.visit('/mood-entries');
+                }, 1500);
+            },
+            onError: (errors) => {
+                errorMessage.value = 'There was an error saving your entry. Please try again.';
+                console.error('Form submission errors:', errors);
+            }
+        });
 
     } catch (error) {
         errorMessage.value = 'There was an error saving your entry. Please try again later.';
+        console.error('Submission error:', error);
     }
 };
 

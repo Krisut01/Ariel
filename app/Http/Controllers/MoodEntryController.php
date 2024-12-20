@@ -22,7 +22,7 @@ class MoodEntryController extends Controller
 
         $moodEntry = MoodEntry::create($validated);
 
-        return response()->json($moodEntry, 201);
+        // return response()->json($moodEntry, 201);
     }
 
     public function index()
