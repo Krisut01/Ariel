@@ -227,21 +227,30 @@ const submitForm = async () => {
     try {
         const data = {
             mood_description: moodDescription.value,
-            mood_intensity: moodIntensity.value,
+            mood_intensity: parseInt(moodIntensity.value),
             emotional_state: emotionalState.value,
-            sleep_quality: sleepQuality.value,
+            sleep_quality: parseInt(sleepQuality.value),
             trigger_description: triggerDescription.value,
             activities_description: activitiesDescription.value,
             gratitude_entry: gratitudeEntry.value,
             goal_description: goalDescription.value,
+            created_at: new Date().toISOString(),
         };
 
-        // Send the data to the server (this will be handled in your Laravel controller)
-        const response = await router.post('/mood-entry', data);
+        // Send the data using Inertia
+        await router.post('/mood-entry', data);
 
-        // Clear the form and display success message
+        // Show success message
         successMessage.value = 'Your mood entry has been saved successfully!';
+        
+        // Clear the form
         resetForm();
+
+        // Redirect to mood entries page after short delay
+        setTimeout(() => {
+            router.visit('/mood-entries');
+        }, 1500);
+
     } catch (error) {
         errorMessage.value = 'There was an error saving your entry. Please try again later.';
     }

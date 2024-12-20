@@ -54,3 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Include Auth Routes
 require __DIR__ . '/auth.php';
+
+Route::post('/mood-entry', [MoodEntryController::class, 'store'])->middleware(['auth']);
+Route::get('/api/mood-entries', [MoodEntryController::class, 'index'])->middleware(['auth']);

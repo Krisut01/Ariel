@@ -103,23 +103,24 @@
                                                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                             </svg>
-                                            View Suggestions
+                                            Personalized Insights & Suggestions
                                         </summary>
                                         <div class="mt-4 pl-7 space-y-3">
-                                         
-                                            
-                                            <!-- Advice or Suggestions based on conditions -->
-                                            <div v-if="entry.emotional_state === 'Stressed' || entry.emotional_state === 'Angry'">
-                                                <p class="text-red-600">Advice: Try some deep breathing exercises or take a break to manage your stress.</p>
-                                            </div>
-                                            <div v-if="entry.emotional_state === 'Sad'">
-                                                <p class="text-blue-600">Advice: Consider talking to a friend or journaling your thoughts to release negative emotions.</p>
-                                            </div>
-                                            <div v-if="entry.mood_intensity < 5">
-                                                <p class="text-green-600">Suggestion: Engaging in light physical activity or meditation can help increase your mood intensity.</p>
-                                            </div>
-                                            <div v-if="entry.sleep_quality < 3">
-                                                <p class="text-orange-600">Suggestion: Focus on improving your sleep hygiene, such as having a consistent sleep schedule and reducing screen time before bed.</p>
+                                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                                <h4 class="font-semibold text-indigo-700 mb-2">Based on your mood entry:</h4>
+                                                <ul class="space-y-2">
+                                                    <li v-for="(suggestion, index) in entry.suggestions" 
+                                                        :key="index"
+                                                        class="flex items-start">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" 
+                                                             class="h-5 w-5 mr-2 text-indigo-500 mt-0.5" 
+                                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                                                  stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                        </svg>
+                                                        <span class="text-gray-700">{{ suggestion }}</span>
+                                                    </li>
+                                                </ul>
                                             </div>
                                         </div>
                                     </details>
@@ -136,45 +137,121 @@
     </AuthenticatedLayout>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            moodEntries: [],
-            moodEntry: {
-                mood_description: "",
-                emotional_state: "",
-                mood_intensity: 5,
-                sleep_quality: 5,
-                goal_description: "",
-                triggers: "",
-                self_care_activities: "",
-                gratitude_log: ""
-            },
-            isLoading: false,
-            errorMessage: ""
-        };
-    },
-    mounted() {
-        this.fetchMoodEntries();
-    },
-    methods: {
-        async fetchMoodEntries() {
-            try {
-                const response = await fetch('/api/mood-entries');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch mood entries');
-                }
-                this.moodEntries = await response.json();
-            } catch (error) {
-                this.errorMessage = error.message;
-            } finally {
-                this.isLoading = false;
-            }
-        }
-        
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue';
+
+const moodEntries = ref([]);
+const isLoading = ref(true);
+const errorMessage = ref('');
+
+// Helper function to generate suggestions based on mood entry
+const generateSuggestions = (entry) => {
+    const suggestions = [];
+
+    // Emotional state based suggestions
+    const emotionalStateSuggestions = {
+        'anxious': [
+            'Try deep breathing exercises (4-7-8 breathing technique)',
+            'Consider mindfulness meditation',
+            'Take a walk in nature to clear your mind',
+        ],
+        'sad': [
+            'Reach out to a friend or family member',
+            'Practice self-compassion exercises',
+            'Consider journaling your feelings',
+            'Engage in a hobby you enjoy',
+        ],
+        'angry': [
+            'Practice progressive muscle relaxation',
+            'Try physical exercise to release tension',
+            'Take time to cool down before making decisions',
+        ],
+        'happy': [
+            'Share your positive energy with others',
+            'Document what made you happy today',
+            'Build on this momentum for tomorrow',
+        ],
+        'excited': [
+            'Channel your energy into productive tasks',
+            'Share your enthusiasm with others',
+            'Set new goals while motivated',
+        ],
+        'calm': [
+            'Perfect time for reflection and planning',
+            'Practice gratitude meditation',
+            'Maintain this balanced state through mindfulness',
+        ],
+        'frustrated': [
+            'Break down problems into smaller tasks',
+            'Take short breaks between activities',
+            'Practice stress-management techniques',
+        ],
+    };
+
+    // Add emotional state suggestions
+    if (entry.emotional_state && emotionalStateSuggestions[entry.emotional_state]) {
+        suggestions.push(...emotionalStateSuggestions[entry.emotional_state]);
+    }
+
+    // Sleep quality based suggestions
+    if (entry.sleep_quality <= 2) {
+        suggestions.push(
+            'Establish a consistent sleep schedule',
+            'Create a relaxing bedtime routine',
+            'Limit screen time before bed',
+            'Consider sleep-promoting activities like reading or meditation'
+        );
+    }
+
+    // Mood intensity based suggestions
+    if (entry.mood_intensity <= 4) {
+        suggestions.push(
+            'Engage in uplifting activities',
+            'Consider talking to a mental health professional',
+            'Practice self-care activities',
+            'Set small, achievable goals for tomorrow'
+        );
+    } else if (entry.mood_intensity >= 8) {
+        suggestions.push(
+            'Channel your energy into productive tasks',
+            'Share your positive state with others',
+            'Document what contributed to your positive mood'
+        );
+    }
+
+    // Activity based suggestions
+    if (entry.activities_description.toLowerCase().includes('exercise')) {
+        suggestions.push(
+            'Great job staying active!',
+            'Consider setting new fitness goals',
+            'Try varying your exercise routine'
+        );
+    }
+
+    return suggestions;
+};
+
+const fetchMoodEntries = async () => {
+    try {
+        const response = await fetch('/api/mood-entries');
+        if (!response.ok) throw new Error('Failed to fetch entries');
+        const data = await response.json();
+        moodEntries.value = data.map(entry => ({
+            ...entry,
+            suggestions: generateSuggestions(entry)
+        }));
+    } catch (error) {
+        errorMessage.value = error.message;
+    } finally {
+        isLoading.value = false;
     }
 };
+
+onMounted(() => {
+    fetchMoodEntries();
+});
 </script>
 
 <style scoped>
