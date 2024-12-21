@@ -62,3 +62,9 @@ require __DIR__ . '/auth.php';
 
 Route::post('/mood-entry', [MoodEntryController::class, 'store'])->middleware(['auth']);
 Route::get('/api/mood-entries', [MoodEntryController::class, 'index'])->middleware(['auth']);
+
+Route::middleware(['auth'])->group(function () {
+    // Existing routes
+    Route::get('/mood-entries', [MoodAnalyticsController::class, 'index'])->name('mood.entries');
+    Route::get('/api/mood-analytics', [MoodAnalyticsController::class, 'getAnalytics']);
+});

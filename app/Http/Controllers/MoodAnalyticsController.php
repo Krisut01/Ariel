@@ -18,4 +18,20 @@ class MoodAnalyticsController extends Controller
             'initialEntries' => $entries
         ]);
     }
+
+    public function getAnalytics()
+    {
+        $entries = MoodEntry::where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'entries' => $entries,
+            'analytics' => [
+                'trends' => $this->calculateTrends($entries),
+                'correlations' => $this->analyzeCorrelations($entries),
+                'patterns' => $this->identifyPatterns($entries)
+            ]
+        ]);
+    }
 }
