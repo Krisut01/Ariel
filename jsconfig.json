@@ -3,8 +3,29 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["resources/js/*"],
-            "ziggy-js": ["./vendor/tightenco/ziggy"]
-        }
+            "ziggy-js": ["./vendor/tightenco/ziggy/dist/js"]
+        },
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "strict": false,
+        "jsx": "preserve",
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "useDefineForClassFields": true,
+        "sourceMap": true,
+        "resolveJsonModule": true
     },
-    "exclude": ["node_modules", "public"]
+    "include": [
+        "resources/js/**/*",
+        "resources/js/**/*.vue"
+    ],
+    "exclude": [
+        "node_modules",
+        "public",
+        "vendor"
+    ]
 }
