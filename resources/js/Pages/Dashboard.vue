@@ -233,7 +233,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import axios from 'axios';
+
+// Configure axios CSRF token
+axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 // Access the logged-in user data from Inertia page props
 const page = usePage();
@@ -298,28 +302,31 @@ const submitForm = async () => {
             activities_description: activitiesDescription.value,
             gratitude_entry: gratitudeEntry.value,
             goal_description: goalDescription.value,
-            created_at: new Date().toISOString(),
         };
 
         // Store current mood intensity before submission
         previousMoodIntensity.value = moodIntensity.value;
 
-        // Send the data using Inertia
-        await router.post('/mood-entry', data);
+        // Send the data using axios to the API endpoint
+        const response = await axios.post('/api/mood-entry', data);
 
-        // Show success message
-        successMessage.value = 'Your mood entry has been saved successfully!';
-        
-        // Clear the form
-        resetForm();
+        if (response.status === 201) {
+            // Show success message
+            successMessage.value = 'Your mood entry has been saved successfully!';
+            errorMessage.value = ''; // Clear any previous error
+            
+            // Clear the form
+            resetForm();
 
-        // Redirect to mood entries page after short delay
-        setTimeout(() => {
-            router.visit('/mood-entries');
-        }, 1500);
-
+            // Redirect to mood entries page after short delay
+            setTimeout(() => {
+                window.location.href = '/mood-entries';
+            }, 1500);
+        }
     } catch (error) {
-        errorMessage.value = 'There was an error saving your entry. Please try again later.';
+        console.error('Submission error:', error);
+        errorMessage.value = error.response?.data?.message || 'There was an error saving your entry. Please try again later.';
+        successMessage.value = ''; // Clear any previous success message
     }
 };
 

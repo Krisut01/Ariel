@@ -36,6 +36,28 @@
                         New Mood Entry
                     </Link>
 
+                    <!-- Todo List Button -->
+                    <button
+                        @click="showTodoList = !showTodoList"
+                        class="inline-flex items-center px-4 py-2 mx-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors duration-150"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                            />
+                        </svg>
+                        {{ showTodoList ? 'Hide Todo List' : 'Show Todo List' }}
+                    </button>
+
                     <!-- Existing Analytics Button -->
                     <button
                         @click="showAnalytics = !showAnalytics"
@@ -70,6 +92,20 @@
                 >
                     <div v-if="showAnalytics" class="mb-8">
                         <MoodAnalyticsCharts :entries="moodEntries" />
+                    </div>
+                </Transition>
+
+                <!-- Add this after your Analytics section -->
+                <Transition
+                    enter-active-class="transition-all duration-300 ease-out"
+                    enter-from-class="opacity-0 transform -translate-y-4"
+                    enter-to-class="opacity-100 transform translate-y-0"
+                    leave-active-class="transition-all duration-300 ease-in"
+                    leave-from-class="opacity-100 transform translate-y-0"
+                    leave-to-class="opacity-0 transform -translate-y-4"
+                >
+                    <div v-if="showTodoList" class="mb-8">
+                        <TodoList />
                     </div>
                 </Transition>
 
@@ -231,6 +267,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import MoodAnalyticsCharts from '@/Components/Analytics/MoodAnalyticsCharts.vue';
+import TodoList from '@/Components/Todo/TodoList.vue';
 
 // Refs for state management
 const moodEntries = ref([]);
@@ -240,6 +277,7 @@ const searchQuery = ref('');
 const emotionFilter = ref('');
 const dateFilter = ref('all');
 const showAnalytics = ref(false);
+const showTodoList = ref(false);
 
 // Available emotions for filter
 const emotions = [
