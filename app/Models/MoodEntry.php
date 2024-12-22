@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class MoodEntry extends Model
 {
@@ -38,5 +39,25 @@ class MoodEntry extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getTimeOfDayAttribute()
+    {
+        return Carbon::parse($this->created_at)->format('H:i');
+    }
+
+    public function scopeThisWeek($query)
+    {
+        return $query->whereBetween('created_at', [
+            Carbon::now()->startOfWeek(),
+            Carbon::now()->endOfWeek(),
+        ]);
+    }
+
+    public function scopeWithAnalytics($query)
+    {
+        return $query->select('*')
+            ->selectRaw('HOUR(created_at) as hour_of_day')
+            ->selectRaw('DATE(created_at) as entry_date');
     }
 }

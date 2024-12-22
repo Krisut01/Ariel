@@ -12,7 +12,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
-                            <h2 class="text-3xl font-bold text-gray-800">Daily Mood Check-in</h2>
+                            <h2 class="text-3xl font-npm ubold text-gray-800">Daily Mood Check-in</h2>
                         </div>
                         <p class="text-center text-lg text-gray-600">
                             Welcome back, <span class="font-semibold text-indigo-600">{{ name }}</span>! Let's reflect on your day.
@@ -61,17 +61,48 @@
 
                                     <div class="space-y-2">
                                         <label class="block text-sm font-medium text-gray-700">Mood Intensity (1-10)</label>
-                                        <input
-                                            v-model="moodIntensity"
-                                            type="range"
-                                            min="1"
-                                            max="10"
-                                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                                        />
-                                        <div class="flex justify-between text-xs text-gray-500">
-                                            <span>Mild</span>
-                                            <span>Moderate</span>
-                                            <span>Intense</span>
+                                        <div class="relative"
+                                             @mouseenter="showIntensity = true"
+                                             @mouseleave="showIntensity = false">
+                                            <input
+                                                v-model="moodIntensity"
+                                                type="range"
+                                                min="1"
+                                                max="10"
+                                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                            />
+                                            <div class="absolute -top-8 left-0 w-full">
+                                                <div 
+                                                    class="relative w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center transform -translate-x-1/2 transition-all duration-300 ease-out"
+                                                    :class="{ 'opacity-0': !showIntensity && !isDragging }"
+                                                    :style="{ left: `${(moodIntensity - 1) * 11.1}%` }"
+                                                >
+                                                    {{ moodIntensity }}
+                                                    <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                                                        <div class="w-2 h-2 bg-indigo-600 rotate-45"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex justify-between text-xs text-gray-500 mt-2">
+                                                <span>Mild</span>
+                                                <span>Moderate</span>
+                                                <span>Intense</span>
+                                            </div>
+                                        </div>
+                                        <div v-if="previousMoodIntensity" class="mt-2 flex items-center text-sm">
+                                            <span class="mr-2">Compared to previous:</span>
+                                            <div class="flex items-center" :class="moodTrendColor">
+                                                <svg v-if="moodIntensity > previousMoodIntensity" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                                <svg v-else-if="moodIntensity < previousMoodIntensity" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                                </svg>
+                                                <span class="ml-1">{{ moodIntensityDiff }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -200,9 +231,13 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import axios from 'axios';
+
+// Configure axios CSRF token
+axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 // Access the logged-in user data from Inertia page props
 const page = usePage();
@@ -217,33 +252,81 @@ const triggerDescription = ref('');
 const activitiesDescription = ref('');
 const gratitudeEntry = ref('');
 const goalDescription = ref('');
-
-// Response messages
 const successMessage = ref('');
 const errorMessage = ref('');
+
+// New ref for previous mood intensity
+const previousMoodIntensity = ref(null);
+
+// New computed properties for mood trend
+const moodIntensityDiff = computed(() => {
+    if (!previousMoodIntensity.value) return '';
+    const diff = moodIntensity.value - previousMoodIntensity.value;
+    return diff > 0 ? `+${diff}` : diff;
+});
+
+const moodTrendColor = computed(() => {
+    if (!previousMoodIntensity.value) return '';
+    const diff = moodIntensity.value - previousMoodIntensity.value;
+    if (diff > 0) return 'text-red-500';
+    if (diff < 0) return 'text-green-500';
+    return 'text-gray-500';
+});
+
+// Add these new refs
+const showIntensity = ref(false);
+const isDragging = ref(false);
+
+// Add event listeners for the range input
+onMounted(() => {
+    const rangeInput = document.querySelector('input[type="range"]');
+    
+    rangeInput.addEventListener('mousedown', () => {
+        isDragging.value = true;
+    });
+    
+    window.addEventListener('mouseup', () => {
+        isDragging.value = false;
+    });
+});
 
 // Submit the form
 const submitForm = async () => {
     try {
         const data = {
             mood_description: moodDescription.value,
-            mood_intensity: moodIntensity.value,
+            mood_intensity: parseInt(moodIntensity.value),
             emotional_state: emotionalState.value,
-            sleep_quality: sleepQuality.value,
+            sleep_quality: parseInt(sleepQuality.value),
             trigger_description: triggerDescription.value,
             activities_description: activitiesDescription.value,
             gratitude_entry: gratitudeEntry.value,
             goal_description: goalDescription.value,
         };
 
-        // Send the data to the server (this will be handled in your Laravel controller)
-        const response = await router.post('/mood-entry', data);
+        // Store current mood intensity before submission
+        previousMoodIntensity.value = moodIntensity.value;
 
-        // Clear the form and display success message
-        successMessage.value = 'Your mood entry has been saved successfully!';
-        resetForm();
+        // Send the data using axios to the API endpoint
+        const response = await axios.post('/api/mood-entry', data);
+
+        if (response.status === 201) {
+            // Show success message
+            successMessage.value = 'Your mood entry has been saved successfully!';
+            errorMessage.value = ''; // Clear any previous error
+            
+            // Clear the form
+            resetForm();
+
+            // Redirect to mood entries page after short delay
+            setTimeout(() => {
+                window.location.href = '/mood-entries';
+            }, 1500);
+        }
     } catch (error) {
-        errorMessage.value = 'There was an error saving your entry. Please try again later.';
+        console.error('Submission error:', error);
+        errorMessage.value = error.response?.data?.message || 'There was an error saving your entry. Please try again later.';
+        successMessage.value = ''; // Clear any previous success message
     }
 };
 
@@ -261,5 +344,35 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-/* Add any styles here if needed */
+input[type="range"] {
+    transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #4f46e5;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #4f46e5;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.2);
+}
 </style>
