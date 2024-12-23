@@ -86,13 +86,13 @@ const submit = () => {
                             <span class="ms-2 text-sm text-gray-600">Remember me</span>
                         </label>
 
-                        <Link
+                        <!-- <Link
                             v-if="canResetPassword"
                             :href="route('password.request')"
                             class="text-sm text-indigo-600 hover:text-indigo-500 hover:underline"
                         >
                             Forgot password?
-                        </Link>
+                        </Link> -->
                     </div>
 
                     <div>
