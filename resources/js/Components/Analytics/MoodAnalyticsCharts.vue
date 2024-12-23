@@ -1,27 +1,35 @@
 <template>
-    <div class="grid md:grid-cols-2 gap-8 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
         <!-- Mood Trend Line Graph -->
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800">Mood Trends</h3>
-            <canvas ref="moodTrendChart"></canvas>
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Mood Trends</h3>
+            <div class="relative w-full" style="height: 300px">
+                <canvas ref="moodTrendChart"></canvas>
+            </div>
         </div>
 
         <!-- Sleep Quality Correlation -->
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800">Sleep Quality Impact</h3>
-            <canvas ref="sleepCorrelationChart"></canvas>
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Sleep Quality Impact</h3>
+            <div class="relative w-full" style="height: 300px">
+                <canvas ref="sleepCorrelationChart"></canvas>
+            </div>
         </div>
 
         <!-- Emotional State Distribution -->
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800">Emotional States</h3>
-            <canvas ref="emotionDistributionChart"></canvas>
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Emotional States</h3>
+            <div class="relative w-full" style="height: 300px">
+                <canvas ref="emotionDistributionChart"></canvas>
+            </div>
         </div>
 
         <!-- Activity Impact Analysis -->
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800">Activity Impact</h3>
-            <canvas ref="activityImpactChart"></canvas>
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+            <h3 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Activity Impact</h3>
+            <div class="relative w-full" style="height: 300px">
+                <canvas ref="activityImpactChart"></canvas>
+            </div>
         </div>
     </div>
 </template>
@@ -49,18 +57,68 @@ let charts = {
     activityImpact: null
 };
 
-// Watch for changes in entries
+// Watch for changes in entries and window resize
 watch(() => props.entries, (newEntries) => {
     updateCharts(newEntries);
 }, { deep: true });
 
+// Add resize observer for responsive charts
+const resizeObserver = new ResizeObserver(() => {
+    Object.values(charts).forEach(chart => {
+        if (chart) {
+            chart.resize();
+        }
+    });
+});
+
 onMounted(() => {
     initializeCharts();
     updateCharts(props.entries);
+    
+    // Observe size changes on chart containers
+    document.querySelectorAll('canvas').forEach(canvas => {
+        resizeObserver.observe(canvas.parentElement);
+    });
+});
+
+const getResponsiveOptions = () => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: window.innerWidth < 768 ? 'bottom' : 'right',
+            labels: {
+                boxWidth: window.innerWidth < 768 ? 12 : 20,
+                padding: window.innerWidth < 768 ? 10 : 20,
+                font: {
+                    size: window.innerWidth < 768 ? 11 : 12
+                }
+            }
+        }
+    },
+    scales: {
+        x: {
+            ticks: {
+                maxRotation: window.innerWidth < 768 ? 45 : 0,
+                font: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                }
+            }
+        },
+        y: {
+            ticks: {
+                font: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                }
+            }
+        }
+    }
 });
 
 const initializeCharts = () => {
-    // Initialize Mood Trend Chart
+    const commonOptions = getResponsiveOptions();
+
+    // Initialize Mood Trend Chart with responsive options
     charts.moodTrend = new Chart(moodTrendChart.value, {
         type: 'line',
         data: {
@@ -73,9 +131,11 @@ const initializeCharts = () => {
             }]
         },
         options: {
-            responsive: true,
+            ...commonOptions,
             scales: {
+                ...commonOptions.scales,
                 y: {
+                    ...commonOptions.scales.y,
                     beginAtZero: true,
                     max: 10
                 }
@@ -94,7 +154,7 @@ const initializeCharts = () => {
             }]
         },
         options: {
-            responsive: true,
+            ...commonOptions,
             scales: {
                 x: {
                     title: {
@@ -131,10 +191,17 @@ const initializeCharts = () => {
             }]
         },
         options: {
-            responsive: true,
+            ...commonOptions,
             plugins: {
                 legend: {
-                    position: 'right'
+                    position: window.innerWidth < 768 ? 'bottom' : 'right',
+                    labels: {
+                        boxWidth: window.innerWidth < 768 ? 12 : 20,
+                        padding: window.innerWidth < 768 ? 10 : 20,
+                        font: {
+                            size: window.innerWidth < 768 ? 11 : 12
+                        }
+                    }
                 }
             }
         }
@@ -152,9 +219,10 @@ const initializeCharts = () => {
             }]
         },
         options: {
-            responsive: true,
+            ...commonOptions,
             scales: {
                 y: {
+                    ...commonOptions.scales.y,
                     beginAtZero: true,
                     max: 10
                 }
@@ -163,19 +231,33 @@ const initializeCharts = () => {
     });
 };
 
+// Update the updateCharts function to handle responsive data display
 const updateCharts = (entries) => {
     if (!entries.length) return;
 
-    // Update Mood Trend Chart
+    const commonOptions = getResponsiveOptions();
+
+    // Update Mood Trend Chart with responsive data
     const moodTrendData = entries.map(entry => ({
         x: new Date(entry.created_at),
         y: entry.mood_intensity
     })).sort((a, b) => a.x - b.x);
 
-    charts.moodTrend.data.labels = moodTrendData.map(d => 
-        d.x.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    // Limit data points on small screens
+    const dataLimit = window.innerWidth < 768 ? 7 : 14;
+    const limitedData = moodTrendData.slice(-dataLimit);
+
+    charts.moodTrend.data.labels = limitedData.map(d => 
+        d.x.toLocaleDateString('en-US', { 
+            month: window.innerWidth < 768 ? 'short' : 'long', 
+            day: 'numeric' 
+        })
     );
-    charts.moodTrend.data.datasets[0].data = moodTrendData.map(d => d.y);
+    charts.moodTrend.data.datasets[0].data = limitedData.map(d => d.y);
+    charts.moodTrend.options = {
+        ...charts.moodTrend.options,
+        ...commonOptions
+    };
     charts.moodTrend.update();
 
     // Update Sleep Correlation Chart
@@ -220,4 +302,32 @@ const updateCharts = (entries) => {
     charts.activityImpact.data.datasets[0].data = averageImpacts.map(d => d.average);
     charts.activityImpact.update();
 };
-</script> 
+</script>
+
+<style scoped>
+/* Add responsive styles */
+@media (max-width: 768px) {
+    .grid {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    canvas {
+        max-height: 250px;
+    }
+}
+
+/* Optimize touch interactions */
+canvas {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Improve performance */
+.grid > div {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+</style> 

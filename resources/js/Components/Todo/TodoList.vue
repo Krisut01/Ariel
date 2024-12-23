@@ -1,34 +1,34 @@
 <template>
-    <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 transition-all duration-300 hover:shadow-xl">
+    <div class="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6 transition-all duration-300 hover:shadow-xl max-w-full mx-auto">
         <!-- Header and Add Todo Button -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-0">
-            <div>
-                <h3 class="text-xl font-bold text-gray-800 mb-1">My Todo List</h3>
-                <p class="text-sm text-gray-500">Keep track of your tasks and stay organized</p>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
+            <div class="w-full sm:w-auto">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-1">My Todo List</h3>
+                <p class="text-xs sm:text-sm text-gray-500">Keep track of your tasks and stay organized</p>
             </div>
             <button
                 @click="openAddTodoModal"
-                class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                class="w-full sm:w-auto inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 mr-2"
+                    class="h-4 w-4 sm:h-5 sm:w-5 mr-2"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                 >
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Add New Task
+                <span class="whitespace-nowrap">Add New Task</span>
             </button>
         </div>
 
         <!-- Add Todo Modal -->
         <div v-if="showTodoForm" 
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
              @click.self="closeAddTodoModal"
         >
-            <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 shadow-2xl">
+            <div class="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-3 sm:mx-4 transform transition-all duration-300 scale-100 shadow-2xl">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-gray-800">Add New Task</h3>
                     <button 
@@ -43,13 +43,13 @@
                 <form @submit.prevent="addTodo" class="space-y-4">
                     <div>
                         <label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Task Description</label>
-                        <input
+                <input
                             id="todo-input"
-                            v-model="newTodo"
-                            type="text"
+                    v-model="newTodo"
+                    type="text"
                             placeholder="What needs to be done?"
                             class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                            required
+                    required
                             ref="todoInput"
                         />
                     </div>
@@ -61,14 +61,14 @@
                         >
                             Cancel
                         </button>
-                        <button
-                            type="submit"
+                <button
+                    type="submit"
                             class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
+                >
                             Add Task
-                        </button>
-                    </div>
-                </form>
+                </button>
+            </div>
+        </form>
             </div>
         </div>
 
@@ -76,37 +76,37 @@
         <TransitionGroup
             name="todo"
             tag="div"
-            class="space-y-3"
+            class="space-y-2 sm:space-y-3"
         >
             <div v-for="todo in sortedTodos" 
                  :key="todo.id" 
-                 class="group flex items-center justify-between p-4 bg-gray-50 hover:bg-white rounded-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 hover:shadow-md"
+                 class="group flex items-center justify-between p-3 sm:p-4 bg-gray-50 hover:bg-white rounded-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 hover:shadow-md"
                  :class="{ 'opacity-75 hover:opacity-100': todo.completed }"
             >
                 <div class="flex items-center flex-1 min-w-0 gap-4">
                     <div class="flex-shrink-0">
-                        <input
-                            type="checkbox"
-                            :checked="todo.completed"
-                            @change="toggleTodo(todo)"
+                    <input
+                        type="checkbox"
+                        :checked="todo.completed"
+                        @change="toggleTodo(todo)"
                             class="h-5 w-5 text-blue-600 rounded-md border-gray-300 focus:ring-blue-500 cursor-pointer transition-all duration-200"
                         />
                     </div>
                     <div class="flex-1 min-w-0">
                         <div v-if="!todo.isEditing" 
                              class="text-sm sm:text-base break-words"
-                             :class="{ 'line-through text-gray-400': todo.completed }"
-                        >
-                            {{ todo.task }}
+                          :class="{ 'line-through text-gray-400': todo.completed }"
+                    >
+                        {{ todo.task }}
                         </div>
-                        <input v-else
-                               v-model="todo.editedTask"
-                               @keyup.enter="updateTodo(todo)"
+                    <input v-else
+                           v-model="todo.editedTask"
+                           @keyup.enter="updateTodo(todo)"
                                @keyup.esc="cancelEdit(todo)"
-                               @blur="updateTodo(todo)"
+                           @blur="updateTodo(todo)"
                                class="w-full text-sm sm:text-base rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                               ref="editInput"
-                        />
+                           ref="editInput"
+                    />
                     </div>
                 </div>
                 
@@ -135,7 +135,7 @@
         </TransitionGroup>
 
         <!-- Empty State -->
-        <div v-if="!isLoading && !todos.length" class="text-center py-12 px-4">
+        <div v-if="!isLoading && !todos.length" class="text-center py-8 sm:py-12 px-3 sm:px-4">
             <div class="text-gray-400 mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -161,17 +161,17 @@
         </div>
 
         <!-- Loading State -->
-        <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
+        <div v-if="isLoading" class="flex flex-col items-center justify-center py-8 sm:py-12">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
             <p class="text-gray-500">Loading your tasks...</p>
         </div>
 
         <!-- Delete Confirmation Modal -->
         <div v-if="showDeleteConfirm" 
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
              @click.self="showDeleteConfirm = false"
         >
-            <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 transform transition-all duration-300 scale-100 shadow-2xl">
+            <div class="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-3 sm:mx-4 transform transition-all duration-300 scale-100 shadow-2xl">
                 <div class="text-center">
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                         <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,10 +229,10 @@ const fetchTodos = async () => {
         const response = await axios.get('/api/todos');
         if (response.data) {
             todos.value = response.data.map(todo => ({
-                ...todo,
-                isEditing: false,
-                editedTask: todo.task
-            }));
+            ...todo,
+            isEditing: false,
+            editedTask: todo.task
+        }));
         }
     } catch (error) {
         console.error('Error fetching todos:', error.response?.data?.error || 'Failed to fetch todos');
@@ -261,11 +261,11 @@ const addTodo = async () => {
     try {
         const response = await axios.post('/api/todos', { task });
         if (response.data) {
-            todos.value.unshift({
+        todos.value.unshift({
                 ...response.data,
-                isEditing: false,
+            isEditing: false,
                 editedTask: response.data.task
-            });
+        });
             closeAddTodoModal();
         }
     } catch (error) {
@@ -323,7 +323,7 @@ const toggleTodo = async (todo) => {
     try {
         const response = await axios.put(`/api/todos/${todo.id}`, { completed: !todo.completed });
         if (response.data) {
-            todo.completed = !todo.completed;
+        todo.completed = !todo.completed;
         }
     } catch (error) {
         console.error('Error toggling todo:', error.response?.data?.error || 'Failed to toggle todo');
@@ -393,5 +393,76 @@ fetchTodos();
 
 ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+}
+
+/* Additional responsive styles */
+@media (max-width: 640px) {
+    .text-base {
+        font-size: 0.875rem;
+    }
+    
+    .text-sm {
+        font-size: 0.8125rem;
+    }
+    
+    input[type="checkbox"] {
+        width: 1.125rem;
+        height: 1.125rem;
+    }
+    
+    .p-4 {
+        padding: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .text-base {
+        font-size: 0.8125rem;
+    }
+    
+    .text-sm {
+        font-size: 0.75rem;
+    }
+    
+    .p-4 {
+        padding: 0.75rem;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+    .group:active {
+        background-color: #ffffff;
+        border-color: #bfdbfe;
+    }
+    
+    .opacity-0 {
+        opacity: 1;
+    }
+    
+    .group-hover\:opacity-100 {
+        opacity: 1;
+    }
+}
+
+/* Ensure buttons are easily tappable on mobile */
+button {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+}
+
+/* Improve scrolling on mobile */
+.overflow-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize transitions for mobile */
+.transition-all {
+    transition-duration: 200ms;
+}
+
+/* Prevent text zoom on mobile */
+input, textarea {
+    font-size: 16px !important;
 }
 </style> 

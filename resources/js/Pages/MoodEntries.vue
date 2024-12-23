@@ -2,26 +2,26 @@
     <Head title="Mood Analytics" />
 
     <AuthenticatedLayout>
-        <div class="min-h-screen bg-gradient-to-br from-violet-50 to-blue-50 py-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="min-h-screen bg-gradient-to-br from-violet-50 to-blue-50 py-4 sm:py-6 md:py-8">
+            <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
                 <!-- Header -->
-                <div class="bg-white shadow-xl rounded-xl overflow-hidden border-t-4 border-indigo-500 mb-8">
-                    <div class="p-8">
-                        <h2 class="text-3xl font-bold text-gray-800 text-center">Mood History & Insights</h2>
-                        <p class="text-center text-gray-600 mt-2">Review and analyze your mood tracking journey</p>
+                <div class="bg-white shadow-xl rounded-xl overflow-hidden border-t-4 border-indigo-500 mb-4 sm:mb-6 md:mb-8">
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center">Mood History & Insights</h2>
+                        <p class="text-center text-sm sm:text-base text-gray-600 mt-2">Review and analyze your mood tracking journey</p>
                     </div>
                 </div>
 
-                <!-- Add this right after the header section and before the Analytics Button -->
-                <div class="flex justify-between items-center mb-6">
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <!-- New Entry Button -->
                     <Link
                         href="/dashboard"
-                        class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-150"
+                        class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition-all duration-200 text-sm sm:text-base font-medium shadow-sm hover:shadow-md"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 mr-2"
+                            class="h-4 w-4 sm:h-5 sm:w-5 mr-2"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -36,96 +36,70 @@
                         New Mood Entry
                     </Link>
 
-                    <!-- Todo List Button -->
-                    <button
-                        @click="showTodoList = !showTodoList"
-                        class="inline-flex items-center px-4 py-2 mx-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors duration-150"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <!-- Todo List Button -->
+                        <button
+                            @click="showTodoList = !showTodoList"
+                            class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white rounded-lg transition-all duration-200 text-sm sm:text-base font-medium shadow-sm hover:shadow-md"
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                            />
-                        </svg>
-                        {{ showTodoList ? 'Hide Todo List' : 'Show Todo List' }}
-                    </button>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 sm:h-5 sm:w-5 mr-2"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                />
+                            </svg>
+                            {{ showTodoList ? 'Hide Todo List' : 'Show Todo List' }}
+                        </button>
 
-                    <!-- Existing Analytics Button -->
-                    <button
-                        @click="showAnalytics = !showAnalytics"
-                        class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-150"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                        <!-- Analytics Button -->
+                        <button
+                            @click="showAnalytics = !showAnalytics"
+                            class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-lg transition-all duration-200 text-sm sm:text-base font-medium shadow-sm hover:shadow-md"
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                            />
-                        </svg>
-                        {{ showAnalytics ? 'Hide Analytics' : 'View Analytics' }}
-                    </button>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 sm:h-5 sm:w-5 mr-2"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                />
+                            </svg>
+                            {{ showAnalytics ? 'Hide Analytics' : 'View Analytics' }}
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Analytics Dashboard -->
-                <Transition
-                    enter-active-class="transition-all duration-300 ease-out"
-                    enter-from-class="opacity-0 transform -translate-y-4"
-                    enter-to-class="opacity-100 transform translate-y-0"
-                    leave-active-class="transition-all duration-300 ease-in"
-                    leave-from-class="opacity-100 transform translate-y-0"
-                    leave-to-class="opacity-0 transform -translate-y-4"
-                >
-                    <div v-if="showAnalytics" class="mb-8">
-                        <MoodAnalyticsCharts :entries="moodEntries" />
-                    </div>
-                </Transition>
-
-                <!-- Add this after your Analytics section -->
-                <Transition
-                    enter-active-class="transition-all duration-300 ease-out"
-                    enter-from-class="opacity-0 transform -translate-y-4"
-                    enter-to-class="opacity-100 transform translate-y-0"
-                    leave-active-class="transition-all duration-300 ease-in"
-                    leave-from-class="opacity-100 transform translate-y-0"
-                    leave-to-class="opacity-0 transform -translate-y-4"
-                >
-                    <div v-if="showTodoList" class="mb-8">
-                        <TodoList />
-                    </div>
-                </Transition>
-
                 <!-- Filters -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Search Entries</label>
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 md:mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-medium text-gray-700">Search Entries</label>
                             <input 
                                 v-model="searchQuery" 
                                 type="text"
-                                class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base"
                                 placeholder="Search by description or triggers..."
                             />
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Emotion</label>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-medium text-gray-700">Filter by Emotion</label>
                             <select 
                                 v-model="emotionFilter"
-                                class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base"
                             >
                                 <option value="">All Emotions</option>
                                 <option v-for="emotion in emotions" :key="emotion" :value="emotion">
@@ -133,11 +107,11 @@
                                 </option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-medium text-gray-700">Time Period</label>
                             <select 
                                 v-model="dateFilter"
-                                class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base"
                             >
                                 <option value="all">All Time</option>
                                 <option value="today">Today</option>
@@ -149,34 +123,34 @@
                 </div>
 
                 <!-- Mood Entries List -->
-                <div class="space-y-6">
+                <div class="space-y-4 sm:space-y-6">
                     <template v-if="!isLoading && filteredEntries.length > 0">
                         <div v-for="entry in filteredEntries" :key="entry.id" 
-                             class="bg-white rounded-xl shadow-lg overflow-hidden">
-                            <div class="p-6">
+                             class="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+                            <div class="p-4 sm:p-6">
                                 <!-- Entry Header -->
-                                <div class="flex items-center justify-between mb-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-4">
                                     <div class="flex items-center space-x-3">
-                                        <span class="text-2xl">{{ getEmotionEmoji(entry.emotional_state) }}</span>
+                                        <span class="text-xl sm:text-2xl">{{ getEmotionEmoji(entry.emotional_state) }}</span>
                                         <div>
-                                            <h3 class="text-lg font-semibold text-gray-800">
+                                            <h3 class="text-base sm:text-lg font-semibold text-gray-800">
                                                 Mood Intensity: {{ entry.mood_intensity }}/10
                                             </h3>
-                                            <p class="text-sm text-gray-500">{{ formatDate(entry.created_at) }}</p>
+                                            <p class="text-xs sm:text-sm text-gray-500">{{ formatDate(entry.created_at) }}</p>
                                         </div>
                                     </div>
-                                    <span class="text-sm text-gray-500">{{ timeAgo(entry.created_at) }}</span>
+                                    <span class="text-xs sm:text-sm text-gray-500">{{ timeAgo(entry.created_at) }}</span>
                                 </div>
 
                                 <!-- Entry Content -->
                                 <div class="space-y-4">
-                                    <p class="text-gray-700">{{ entry.mood_description }}</p>
+                                    <p class="text-sm sm:text-base text-gray-700">{{ entry.mood_description }}</p>
                                     
                                     <!-- Expandable Details -->
                                     <details class="group">
                                         <summary class="flex items-center cursor-pointer">
-                                            <span class="text-sm font-medium text-indigo-600">View Details</span>
-                                            <svg class="w-5 h-5 ml-2 text-indigo-600 transform transition-transform group-open:rotate-90" 
+                                            <span class="text-xs sm:text-sm font-medium text-indigo-600">View Details</span>
+                                            <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-2 text-indigo-600 transform transition-transform group-open:rotate-90" 
                                                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                             </svg>
@@ -247,14 +221,14 @@
                     </template>
 
                     <!-- Loading State -->
-                    <div v-if="isLoading" class="text-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
-                        <p class="mt-4 text-gray-600">Loading your entries...</p>
+                    <div v-if="isLoading" class="text-center py-8 sm:py-12">
+                        <div class="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-500 mx-auto"></div>
+                        <p class="mt-4 text-sm sm:text-base text-gray-600">Loading your entries...</p>
                     </div>
 
                     <!-- No Results State -->
-                    <div v-if="!isLoading && filteredEntries.length === 0" class="text-center py-12">
-                        <p class="text-gray-600">{{ noEntriesMessage }}</p>
+                    <div v-if="!isLoading && filteredEntries.length === 0" class="text-center py-8 sm:py-12">
+                        <p class="text-sm sm:text-base text-gray-600">{{ noEntriesMessage }}</p>
                     </div>
                 </div>
             </div>
@@ -525,48 +499,55 @@ onMounted(() => {
 </script>
 
 <style scoped>
-details summary::-webkit-details-marker {
-    display: none;
+/* Add responsive styles */
+@media (max-width: 640px) {
+    .text-base {
+        font-size: 0.875rem;
+    }
+    
+    .text-sm {
+        font-size: 0.8125rem;
+    }
+    
+    .text-xs {
+        font-size: 0.75rem;
+    }
 }
 
-.group-open\:rotate-90 {
-    transform: rotate(90deg);
+/* Touch device optimizations */
+@media (hover: none) {
+    .hover\:shadow-xl {
+        box-shadow: none;
+    }
+    
+    .group:active svg {
+        transform: rotate(90deg);
+    }
 }
 
-/* Add these styles for the transition */
+/* Improve scrolling on mobile */
+.overflow-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize transitions for mobile */
 .transition-all {
-    transition-property: all;
+    transition-duration: 200ms;
 }
 
-.duration-300 {
-    transition-duration: 300ms;
+/* Prevent text zoom on mobile */
+input, select {
+    font-size: 16px !important;
 }
 
-.ease-in {
-    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+/* Improve button touch targets */
+button, a {
+    min-height: 2.75rem;
 }
 
-.ease-out {
-    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
-}
-
+/* Performance optimizations */
 .transform {
     transform: translateZ(0);
-}
-
-.-translate-y-4 {
-    transform: translateY(-1rem);
-}
-
-.translate-y-0 {
-    transform: translateY(0);
-}
-
-.opacity-0 {
-    opacity: 0;
-}
-
-.opacity-100 {
-    opacity: 1;
+    backface-visibility: hidden;
 }
 </style>
