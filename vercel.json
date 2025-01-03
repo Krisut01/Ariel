@@ -3,7 +3,7 @@
     "builds": [
       {
         "src": "public/index.php", 
-        "use": "@vercel/php",
+        "use": "vercel-php",
         "config": {
           "maxLambdaSize": "50mb"
         }
@@ -19,7 +19,7 @@
         "dest": "/public/index.php"
       },
       {
-        "src": "/(.*)",  
+        "src": "/(.*)", 
         "dest": "/public/$1"
       }
     ],
