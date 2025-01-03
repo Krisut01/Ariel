@@ -17,6 +17,9 @@ export default defineConfig({
             },
         }),
     ],
+    build: {
+        outDir: 'public/build',  
+    },
     server: {
         hmr: {
             host: 'localhost',
