@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+.env
+.env.*
+.git
+.gitignore
+.gitattributes
+README.md
+/storage/*.key
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/tests 

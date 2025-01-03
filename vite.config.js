@@ -17,6 +17,9 @@ export default defineConfig({
             },
         }),
     ],
+    build: {
+        outDir: 'dist',  // Change this to 'dist' for compatibility with Vercel
+    },
     server: {
         hmr: {
             host: 'localhost',
