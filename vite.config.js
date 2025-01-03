@@ -18,11 +18,14 @@ export default defineConfig({
         }),
     ],
     server: {
-        hmr: {
-            host: 'localhost',
-        },
         watch: {
             usePolling: true,
         },
     },
+    build: {
+        rollupOptions: {
+            external: ['ziggy-js'], // Mark ziggy-js as external to avoid resolution issues
+        },
+    },
+    base: process.env.APP_URL || '/', // Ensures correct asset resolution in production
 });
